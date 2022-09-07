@@ -138,7 +138,7 @@ for i, url in enumerate(urls):
     out.append(info)
     bkup(out)
     print("backup done")
-    print(i, " -- ", out[-1])
+    print(i, " -- ", out[-1], "\n")
     driver.delete_all_cookies()
     driver.execute_cdp_cmd(
         "Network.setUserAgentOverride",
