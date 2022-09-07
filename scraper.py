@@ -25,9 +25,26 @@ def readyDriver():
     chrome_options.add_experimental_option(
         "prefs", {"profile.managed_default_content_settings.images": 2}
     )
-    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    chrome_options.add_experimental_option(
+        "excludeSwitches",
+        [
+            "disable-background-networking",
+            "disable-default-apps",
+            "disable-hang-monitor",
+            "disable-popup-blocking",
+            "disable-prompt-on-repost",
+            "disable-sync",
+            "enable-automation",
+            "enable-blink-features",
+            "log-level",
+            "no-first-run",
+            "no-service-autorun",
+            "password-store",
+            "test-type",
+            "use-mock-keychain",
+        ],
+    )
     chrome_options.add_experimental_option("useAutomationExtension", False)
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
     chrome_options.add_experimental_option(
         "mobileEmulation", {"deviceName": "iPhone X"}
     )
@@ -39,7 +56,16 @@ def readyDriver():
     driver.execute_script(
         "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
     )
-    driver.maximize_window()
+    driver.execute_cdp_cmd(
+        "Network.setBlockedURLs",
+        {
+            "urls": [
+                "cloudflare.hcaptcha.com",
+                "cf-assets.hcaptcha.com",
+                "cloudflare.com",
+            ]
+        },
+    )
     time.sleep(1)
     return driver
 
@@ -65,10 +91,16 @@ for i, url in enumerate(urls):
             while True:
                 driver.delete_all_cookies()
                 time.sleep(wait_time)
+                driver.execute_cdp_cmd(
+                    "Network.setUserAgentOverride",
+                    {"userAgent": user_agent_rotator.get_random_user_agent()},
+                )
                 driver.refresh()
+                time.sleep(2)
                 if driver.title != "Just a moment...":
                     break
                 wait_time += 2
+                print(f"stuck at robot test\nwait time increased to {wait_time}")
         print("waiting for data")
         WebDriverWait(driver, 200).until(
             EC.visibility_of_element_located(
