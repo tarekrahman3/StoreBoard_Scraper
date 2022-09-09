@@ -7,8 +7,10 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.proxy import Proxy, ProxyType
+
+from webdriver_manager.chrome import ChromeDriverManager
 
 from random_user_agent.user_agent import UserAgent
 from random_user_agent.params import SoftwareName, OperatingSystem
@@ -22,6 +24,7 @@ user_agent_rotator = UserAgent(
 
 def readyDriver():
     chrome_options = Options()
+    chrome_options.add_argument("log-level=3")
     chrome_options.add_experimental_option(
         "prefs", {"profile.managed_default_content_settings.images": 2}
     )
@@ -63,6 +66,7 @@ def readyDriver():
                 "cloudflare.hcaptcha.com",
                 "cf-assets.hcaptcha.com",
                 "cloudflare.com",
+                "m.add-this.com" "",
             ]
         },
     )
@@ -102,11 +106,14 @@ for i, url in enumerate(urls):
                 wait_time += 2
                 print(f"stuck at robot test\nwait time increased to {wait_time}")
         print("waiting for data")
-        WebDriverWait(driver, 200).until(
-            EC.visibility_of_element_located(
-                (By.XPATH, '//td[text()="Directory Category"]')
+        if "Page Not Found" in driver.page_source:
+            pass
+        else:
+            WebDriverWait(driver, 200).until(
+                EC.visibility_of_element_located(
+                    (By.XPATH, '//td[text()="Directory Category"]')
+                )
             )
-        )
         print("wait complete")
         doc = html.fromstring(driver.page_source)
     except Exception as e:
